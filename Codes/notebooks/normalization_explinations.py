@@ -276,39 +276,72 @@ Weight Normalization reparameterizes the weight vectors.
 
 Original weight vector: w
 Weight Norm splits it into:
-  - Direction: v (learnable)
+  - Direction: v (learnable vector)
   - Magnitude: g (learnable scalar)
   
   w = g * (v / ||v||)
   
-VISUAL (for a weight matrix):
+NOTE: The final weights w are the SAME, but during training, the network
+learns g and v separately. This decoupling can improve optimization!
+  
+VISUAL (for a weight matrix with 6 input features, 2 output neurons):
                         
 Original:               Weight Normalized:
 ┌─────────────┐         ┌─────────────┐
 │  w11  w12   │    →    │ g·v11/||v|| │   g = magnitude (scalar)
 │  w21  w22   │         │ g·v21/||v|| │   v = direction (vector)
 │  w31  w32   │         │ g·v31/||v|| │   ||v|| = norm of v
+│  w41  w42   │         │ g·v41/||v|| │   
+│  w51  w52   │         │ g·v51/||v|| │   Each COLUMN is normalized
+│  w61  w62   │         │ g·v61/||v|| │   independently (per output neuron)
 └─────────────┘         └─────────────┘
+  6×2 matrix              6×2 matrix
 
 Key Insight: Separates "what direction" from "how much"
+Each column (output neuron) has its own magnitude g and direction v/||v||
 """)
 
 # Demonstrate with example weights
-example_weights = np.array([[3.0, 4.0], [1.0, 2.0], [2.0, 1.0]])
-print("Example weight matrix:")
+# For 6 input features → 2 output neurons, weight matrix should be 6×2
+example_weights = np.array([
+    [3.0, 4.0],   # weights for feature 0
+    [1.0, 2.0],   # weights for feature 1
+    [2.0, 1.0],   # weights for feature 2
+    [1.5, 3.0],   # weights for feature 3
+    [2.5, 1.5],   # weights for feature 4
+    [3.5, 2.5]    # weights for feature 5
+])
+print("Example weight matrix (6 input features × 2 output neurons):")
 print(example_weights)
+print(f"Shape: {example_weights.shape} (matches our 6-feature data!)")
 
 # Weight normalization for each column (output neuron)
+print("\nDemonstrating the reparameterization (w = g * v/||v||):")
 for col in range(example_weights.shape[1]):
     v = example_weights[:, col]
     norm_v = np.linalg.norm(v)
     g = norm_v  # magnitude
     direction = v / norm_v
-    print(f"\nColumn {col}: v = {v}")
+    print(f"\nOutput neuron {col}: weight vector v = {v}")
     print(f"  ||v|| = {norm_v:.4f}")
     print(f"  direction = v/||v|| = {direction}")
     print(f"  g (magnitude) = {g:.4f}")
     print(f"  Reconstructed: g * direction = {g * direction}")
+    print(f"  ✓ Same as original! (g * direction = v)")
+
+print("""
+IMPORTANT: The reconstructed weights ARE the same as the original!
+The benefit is HOW the network LEARNS during training:
+  - Instead of learning w directly, it learns g and v separately
+  - Gradient updates to g (magnitude) don't affect direction
+  - Gradient updates to v (direction) are automatically normalized
+  - This can lead to faster/more stable optimization
+  
+Example during training:
+  - If you want weights to be "stronger", just increase g
+  - If you want to change "what" the neuron responds to, adjust v
+  - These two aspects are decoupled in the gradient updates!
+""")
 
 print("""
 ✓ Decouples weight magnitude from direction
@@ -338,14 +371,19 @@ Spectral Normalization divides weights by their spectral norm:
   
 This ensures the Lipschitz constant of the layer ≤ 1.
 
-VISUAL:
+VISUAL (using our 6×2 weight matrix):
 Original matrix W:        After Spectral Norm:
 ┌─────────────┐           ┌─────────────┐
-│  3.0   4.0  │           │  0.47  0.63 │  ← Divided by σ(W)
-│  1.0   2.0  │     →     │  0.16  0.32 │
-│  2.0   1.0  │           │  0.32  0.16 │
+│  3.0   4.0  │           │  W/σ(W)     │  ← Divided by σ(W)
+│  1.0   2.0  │           │             │
+│  2.0   1.0  │     →     │  All values │
+│  1.5   3.0  │           │  scaled     │
+│  2.5   1.5  │           │  down       │
+│  3.5   2.5  │           │             │
 └─────────────┘           └─────────────┘
-    σ(W) ≈ 6.32              σ(W_norm) = 1.0
+  6×2 matrix                6×2 matrix
+  σ(W) = largest           σ(W_norm) = 1.0
+  singular value
 """)
 
 # Compute spectral norm of example weights
