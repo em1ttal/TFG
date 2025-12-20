@@ -1,0 +1,28 @@
+\chapter{Experimental Setup}
+
+To validate our methodology, we conducted a comprehensive evaluation comprising 18 distinct experiments:
+\[
+(1 \text{ Baseline} + 5 \text{ Strategies}) \times 3 \text{ Forget Requests} = 18 \text{ Experiments}
+\]
+
+\section{The Baseline: Retraining from Scratch}
+For each Forget Request, we trained a fresh TabNet model solely on the retain set $D_r$. This serves as our "Gold Standard." A perfect unlearning strategy would match this baseline's performance exactly:
+\begin{itemize}
+    \item \textbf{Retain Accuracy}: Should match the baseline (high).
+    \item \textbf{Forget Accuracy}: Should match the baseline (typically 0\% or random chance).
+    \item \textbf{Test Accuracy}: Should match the baseline (high generalization).
+\end{itemize}
+
+\section{Evaluation Metrics}
+We assess performance using three key metrics:
+\begin{enumerate}
+    \item \textbf{Retain Accuracy}: The accuracy on the data we intend to keep. We want this to remain high. A drop here indicates "catastrophic forgetting."
+    \item \textbf{Forget Accuracy}: The accuracy on the data we want to remove. We want this to drop significantly. If this remains high, the unlearning failed.
+    \item \textbf{Test Accuracy}: The accuracy on unseen data. This ensures the model hasn't just broken its decision boundaries but remains a useful classifier.
+\end{enumerate}
+
+To rank the strategies, we also define a \textbf{Balance Score}:
+\[
+\text{Score} = \text{Retain Acc} + \text{Test Acc} - \text{Forget Acc}
+\]
+A higher score indicates a better trade-off.

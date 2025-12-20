@@ -1,0 +1,19 @@
+\chapter{Results and Discussion}
+
+Our experiments revealed significant insights into the behavior of TabNet under unlearning conditions.
+
+\section{Sensitivity of TabNet}
+One of the most critical findings was the extreme sensitivity of TabNet to weight perturbations. Initial experiments with a noise scale of $\sigma=0.5$ (50\% of parameter standard deviation) resulted in catastrophic model failure, where the model could no longer predict anything (random guessing on all sets).
+
+We found that TabNet requires "ultra-conservative" noise levels ($\sigma \approx 0.01$, or 1\% perturbation) to achieve a balance. This is likely due to its sparse architecture and attention masks; small changes in weights can drastically alter the feature selection path, cascading into large prediction errors.
+
+\section{Performance of Strategies}
+
+\subsection{Gradient Ascent (Strategy 5)}
+This was consistently the top performer. By using the gradient information, it targets the specific weights responsible for the forget set predictions. This resulted in a massive drop in Forget Accuracy (desired) while maintaining Retain Accuracy within 2-3\% of the baseline.
+
+\subsection{Adaptive Noise (Strategy 3)}
+Scaling noise by parameter magnitude proved effective. It naturally targets the "important" weights more than the near-zero weights, leading to efficient forgetting without the computational cost of calculating gradients.
+
+\subsection{Global Noise (Gaussian/Laplacian)}
+While simple, these strategies struggled to find a sweet spot. They either didn't unlearn enough (high Forget Acc) or damaged the retain performance too much.

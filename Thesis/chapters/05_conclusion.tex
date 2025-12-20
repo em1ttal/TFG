@@ -1,0 +1,10 @@
+\chapter{Conclusion}
+
+We successfully demonstrated that machine unlearning is possible in Tabular Neural Networks without retraining. Our results show that targeted strategies like \textbf{Gradient Ascent} offer the best performance, closely mimicking the "Gold Standard" of retraining but at a fraction of the computational cost. For scenarios where gradient computation is too expensive, \textbf{Adaptive Noise} offers a strong heuristic alternative.
+
+Future work could explore:
+\begin{itemize}
+    \item Applying these strategies to larger, real-world datasets.
+    \item Investigating the impact of noise on model explainability (does the attention mask change?).
+    \item Developing hybrid strategies that combine gradient information with layer-wise scaling.
+\end{itemize}

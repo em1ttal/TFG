@@ -1,0 +1,101 @@
+\chapter{Methodology}
+
+To rigorously evaluate machine unlearning strategies, we need a controlled environment where we understand the data distribution and can measure exactly how well the model forgets. In this chapter, we detail our experimental setup, including the dataset generation, the model architecture, and the specific unlearning algorithms we implemented.
+
+\section{The Dataset: Multi-Class Spirals}
+
+We generate a synthetic 2D non-linear dataset known as the "Spiral Dataset." This dataset is particularly useful for testing deep learning models because it is not linearly separable—a simple linear classifier would fail completely. The model must learn complex, curving decision boundaries.
+
+\subsection{Data Generation Process}
+The dataset consists of $N=1200$ samples distributed across 4 distinct classes (spiral arms). For each class $k \in \{0, 1, 2, 3\}$, we generate data points using polar coordinates that are then converted to Cartesian coordinates $(x, y)$.
+
+For each sample $i$, we first generate a random variable $\theta_i$:
+\[
+\theta_i = \sqrt{r_i} \cdot 2\pi
+\]
+where $r_i \sim U(0, 1)$ is a uniform random variable. The square root ensures a uniform density of points along the spiral arm.
+
+The radius $R_i$ is linearly related to the angle:
+\[
+R_i = 2\theta_i + \pi
+\]
+
+To create the distinct arms, we add an angular offset $\phi_k$ for each class $k$:
+\[
+\phi_k = \frac{2\pi \cdot k}{4}
+\]
+
+Finally, we convert to Cartesian coordinates and add Gaussian noise $\epsilon \sim \mathcal{N}(0, 0.5)$ to make the task more challenging:
+\[
+x_i = R_i \cos(\theta_i + \phi_k) + \epsilon_x
+\]
+\[
+y_i = R_i \sin(\theta_i + \phi_k) + \epsilon_y
+\]
+
+This results in four intertwining spiral arms. We split this dataset into a training set (80\%) and a test set (20\%). Crucially, we standardize the data using the mean and variance of the \emph{training set}, ensuring that our inputs have zero mean and unit variance.
+
+\section{The Model: TabNet}
+
+For our classification task, we employ \textbf{TabNet} (Attentive Interpretable Tabular Learning) \cite{TabNet}. While decision trees (like XGBoost) have traditionally dominated tabular data tasks, TabNet brings the benefits of deep learning—such as end-to-end learning and representation learning—to tabular domains.
+
+TabNet uses a sequential attention mechanism to choose which features to reason from at each decision step. This enables interpretability (we can see which features matter) and efficient learning.
+
+Our specific configuration uses:
+\begin{itemize}
+    \item \textbf{Optimizer}: Adam with learning rate 0.02.
+    \item \textbf{Scheduler}: StepLR with gamma 0.9.
+    \item \textbf{Mask Type}: Entmax (a sparse variant of softmax).
+    \item \textbf{Training}: 100 epochs with early stopping patience of 20 epochs.
+\end{itemize}
+
+\section{Unlearning Framework}
+
+We define "Unlearning" as the process of updating a trained model $\mathcal{M}$ to remove the knowledge associated with a specific subset of data $D_f$ (the forget set), while retaining knowledge of the remaining data $D_r$ (the retain set).
+
+Let $D_{train} = D_r \cup D_f$. Our goal is to obtain an unlearned model $\mathcal{M}_{unlearned}$ that approximates the baseline model $\mathcal{M}_{gold}$, which is trained from scratch solely on $D_r$.
+
+We simulate three distinct "Forget Requests" to test different unlearning scenarios:
+\begin{enumerate}
+    \item \textbf{FR1: Remove Entire Class}: We ask the model to forget everything about Class 2.
+    \item \textbf{FR2: Remove Outer Section}: We remove the outer 40\% of the spiral arm for Class 1 (mimicking "right to be forgotten" for specific users).
+    \item \textbf{FR3: Remove Multiple Sections}: We remove the outer 40\% of both Class 0 and Class 3.
+\end{enumerate}
+
+\section{Noise-Based Unlearning Strategies}
+
+We implement five strategies that inject carefully calibrated noise into the model's weights to induce forgetting. The intuition is that by perturbing the weights, we can disrupt the specific patterns learned for the forget set.
+
+\subsection{Strategy 1: Gaussian Noise Injection}
+We add random noise drawn from a normal distribution to the model's parameters $\theta$. To avoid destroying the model completely, we scale the noise by the standard deviation of each parameter:
+\[
+\theta' = \theta + \mathcal{N}(0, \sigma^2) \cdot \text{std}(\theta)
+\]
+We use a noise scale $\sigma = 0.01$, which we found experimentally to be the "sweet spot" for TabNet.
+
+\subsection{Strategy 2: Laplacian Noise Injection}
+Laplacian noise is often used in differential privacy because it has a heavier tail than Gaussian noise.
+\[
+\theta' = \theta + \text{Laplace}(0, b) \cdot \text{std}(\theta)
+\]
+This allows for occasional larger perturbations, potentially helping the model escape the local minima associated with the forget data.
+
+\subsection{Strategy 3: Adaptive Noise Injection}
+Instead of uniform noise, we scale the noise based on the magnitude of the weights themselves.
+\[
+\theta' = \theta + \mathcal{N}(0, \sigma^2) \cdot |\theta|
+\]
+The intuition is that larger weights encode more "knowledge," so they should receive proportionally more noise to induce forgetting.
+
+\subsection{Strategy 4: Layer-wise Noise Injection}
+Deep networks process information hierarchically. The earlier layers often learn general features, while later layers make specific class decisions. We apply progressive noise scaling, where later layers receive up to $2\times$ more noise than early layers. This targets the decision boundary logic without destroying the fundamental feature extraction capabilities.
+
+\subsection{Strategy 5: Gradient-Based Unlearning (Gradient Ascent)}
+This is the most targeted strategy. Instead of random noise, we perform \textbf{Gradient Ascent} on the forget set.
+
+In standard training, we minimize the loss $\mathcal{L}$ using Gradient Descent: $\theta \leftarrow \theta - \eta \nabla_\theta \mathcal{L}$.
+To unlearn, we want to \emph{maximize} the loss on the forget set:
+\[
+\theta \leftarrow \theta + \eta \nabla_\theta \mathcal{L}(D_f)
+\]
+We perform this for a few steps with a very small learning rate ($\eta = 0.002$) to gently push the model's weights away from the configuration that predicts the forget set well. We also add a tiny amount of random noise to prevent the model from simply overfitting to a "negative" solution.
