@@ -19,6 +19,7 @@ We assess performance using three key metrics:
     \item \textbf{Retain Accuracy}: The accuracy on the data we intend to keep. We want this to remain high. A drop here indicates "catastrophic forgetting."
     \item \textbf{Forget Accuracy}: The accuracy on the data we want to remove. We want this to drop significantly. If this remains high, the unlearning failed.
     \item \textbf{Test Accuracy}: The accuracy on unseen data. This ensures the model hasn't just broken its decision boundaries but remains a useful classifier.
+    \item \textbf{MIA AUC}: The Area Under the Curve for Membership Inference Attacks. A value close to 0.5 indicates successful privacy preservation (random guessing by the attacker), while 1.0 indicates complete information leakage.
 \end{enumerate}
 
 To rank the strategies, we also define a \textbf{Balance Score}:

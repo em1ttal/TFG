@@ -58,8 +58,8 @@ Let $D_{train} = D_r \cup D_f$. Our goal is to obtain an unlearned model $\mathc
 We simulate three distinct "Forget Requests" to test different unlearning scenarios:
 \begin{enumerate}
     \item \textbf{FR1: Remove Entire Class}: We ask the model to forget everything about Class 2.
-    \item \textbf{FR2: Remove Outer Section}: We remove the outer 40\% of the spiral arm for Class 1 (mimicking "right to be forgotten" for specific users).
-    \item \textbf{FR3: Remove Multiple Sections}: We remove the outer 40\% of both Class 0 and Class 3.
+    \item \textbf{FR2: Remove Partial Class}: We remove a random 40\% subset of Class 1 (mimicking "right to be forgotten" for specific users).
+    \item \textbf{FR3: Remove Multi-Class Subset}: We remove a random 40\% subset of both Class 0 and Class 3.
 \end{enumerate}
 
 \section{Noise-Based Unlearning Strategies}
