@@ -1,37 +1,39 @@
 \chapter{Results and Discussion}
 
-Our experiments revealed significant insights into the behavior of TabNet under unlearning conditions, particularly highlighting the trade-off between utility preservation and forgetting effectiveness.
+Our experiments revealed significant insights into the behavior of TabNet under unlearning conditions, particularly highlighting the trade-off between utility preservation and forgetting effectiveness across different data complexities.
 
 \section{Sensitivity of TabNet}
-One of the most critical findings was the extreme sensitivity of TabNet to weight perturbations. We found that TabNet requires "ultra-conservative" noise levels (e.g., $\sigma \approx 0.01$ for Gaussian noise) to avoid catastrophic failure. Higher noise levels ($>0.1$) rapidly destroyed the model's ability to classify even the retained data, reducing accuracy to random guessing.
+One of the most critical findings was the extreme sensitivity of TabNet to weight perturbations. We found that TabNet requires "ultra-conservative" noise levels (e.g., $\sigma \approx 0.01$ for Gaussian noise) to avoid catastrophic failure. Higher noise levels ($>0.1$) rapidly destroyed the model's ability to classify even the retained data, reducing accuracy to random guessing. This sensitivity was observed in both the Spiral and Adult Income datasets, suggesting it is an architectural property of TabNet's sparse attention mechanism.
 
-\section{Performance of Strategies}
+\section{Performance on Spiral Dataset (Phase 1)}
 
 \subsection{Forgetting Effectiveness}
-Contrary to our initial expectations, all noise-based strategies struggled to achieve the target forget accuracy of 25\% (random guessing). The Forget Accuracy remained high ($>90\%$) for all methods, indicating that the model retained significant information about the forget set.
-
+Contrary to our initial expectations, all noise-based strategies struggled to achieve the target forget accuracy of 25\% (random guessing) on the Spiral dataset. The Forget Accuracy remained high ($>90\%$) for all methods.
 \begin{itemize}
-    \item \textbf{Gradient-based Unlearning}: This was the top-performing strategy overall. It achieved the lowest Forget Accuracy (~96.6\%) among all methods, though still far from the target. It effectively identified the most relevant weights but was limited by the need to preserve utility.
-    \item \textbf{Noise Injection Methods (Gaussian, Laplacian, Adaptive)}: These methods proved less effective at forgetting, with Forget Accuracy often exceeding 97\%. The perturbations, while sufficient to slightly degrade performance, were not targeted enough to erase the specific decision boundaries of the forget class without damaging the rest of the model.
+    \item \textbf{Gradient-based Unlearning}: This was the top-performing strategy. It achieved the lowest Forget Accuracy (~96.6\%) among all methods.
+    \item \textbf{Visual Analysis}: While the statistical accuracy remained high, the decision boundary visualizations showed that the "confident core" of the forget class was slightly eroded, but the model failed to fully overwrite the decision region.
 \end{itemize}
 
 \subsection{Utility Preservation}
-All strategies excelled at utility preservation. Retain Accuracy and Test Accuracy consistently remained high ($>96\%$), closely matching the baseline model. This suggests that the "ultra-conservative" noise levels successfully protected the model's general knowledge, even if they were insufficient for complete unlearning.
+All strategies excelled at utility preservation. Retain Accuracy and Test Accuracy consistently remained high ($>96\%$), closely matching the baseline model.
 
-\subsection{Privacy Guarantee (MIA)}
-We evaluated the Membership Inference Attack (MIA) AUC to measure privacy leakage. A value of 0.5 indicates perfect privacy (random guessing by the attacker).
+\section{Performance on Adult Income Dataset (Phase 2)}
+
+Transitioning to the Adult Income dataset presented new challenges. The higher dimensionality and class imbalance made the "forgetting" task even harder.
+
+\subsection{Results Summary}
 \begin{itemize}
-    \item \textbf{Gradient-based}: Achieved an MIA AUC of ~0.475, closest to the target of 0.5.
-    \item \textbf{Adaptive Noise}: Also performed well with an AUC of ~0.499.
-    \item \textbf{Gaussian/Laplacian}: Showed slightly higher leakage (AUC > 0.50), indicating that the noise injection left some distinguishable traces.
+    \item \textbf{Utility}: Similar to the spiral experiments, utility was well-preserved. The model maintained high accuracy on the retained census data.
+    \item \textbf{Forgetting}: The binary nature of the task (50\% random guess baseline) meant that small perturbations were even less effective at flipping predictions. The Forget Accuracy remained persistently high, indicating that the noise methods could not easily "erase" the learned socio-economic patterns associated with the income prediction.
+    \item \textbf{MIA AUC}: We observed MIA AUC scores close to 0.50 for the Gradient-based and Adaptive methods, suggesting that while the model didn't "forget" the classification rule, it did become harder to distinguish member samples from non-members based on confidence scores alone.
 \end{itemize}
 
 \section{Strategy Ranking}
 Based on our Balance Score (Retain + Test - Forget), the strategies were ranked as follows:
 \begin{enumerate}
-    \item \textbf{Gradient-based Unlearning} (Score: ~0.982)
-    \item \textbf{Gaussian Noise} (Score: ~0.978)
-    \item \textbf{Layer-wise Noise} (Score: ~0.974)
+    \item \textbf{Gradient-based Unlearning}: Consistently offered the best trade-off by actively maximizing loss on the forget set.
+    \item \textbf{Adaptive Noise}: Performed well by targeting larger weights, which likely encode more significant features in the TabNet architecture.
+    \item \textbf{Gaussian/Laplacian}: Proved too generic to be effective without damaging utility.
 \end{enumerate}
 
 While Gradient-based unlearning provided the best trade-off, the results highlight the inherent difficulty of unlearning in sparse architectures like TabNet using simple noise or gradient mechanisms alone.

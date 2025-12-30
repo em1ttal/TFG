@@ -1,9 +1,10 @@
 \chapter{Conclusion}
 
-We successfully demonstrated the application of noise-based machine unlearning strategies to TabNet models on tabular data. Our investigation reveals a nuanced landscape: while it is computationally efficient to inject noise, achieving deep "forgetting" (reducing forget set accuracy to random chance) without retraining remains a significant challenge for this architecture.
+We successfully demonstrated the application of noise-based machine unlearning strategies to TabNet models, evolving our analysis from synthetic spiral data to real-world census data. Our investigation reveals a nuanced landscape: while it is computationally efficient to inject noise, achieving deep "forgetting" (reducing forget set accuracy to random chance) without retraining remains a significant challenge for this architecture.
 
 Our key findings include:
 \begin{itemize}
+    \item \textbf{Architectural Sensitivity}: TabNet's sparse attention mechanism makes it highly sensitive to weight perturbations. "Ultra-conservative" noise is required to preserve utility, which fundamentally limits the effectiveness of simple noise injection for unlearning.
     \item \textbf{Utility vs. Forgetting}: We achieved excellent utility preservation ($>96\%$ accuracy on retained data) but struggled to significantly degrade performance on the forget set using noise-based methods alone.
     \item \textbf{Best Strategy}: \textbf{Gradient-based Unlearning} emerged as the most effective approach, offering the best balance between forgetting and utility, and achieving the most favorable privacy metrics (MIA AUC close to 0.5).
     \item \textbf{Efficiency}: All noise-based methods were orders of magnitude faster than retraining (up to 300x faster), validating their potential for real-time applications if the forgetting effectiveness can be improved.
@@ -12,7 +13,7 @@ Our key findings include:
 Future work should focus on:
 \begin{itemize}
     \item \textbf{Hybrid Approaches}: Combining gradient-based targeting with more aggressive, localized noise injection (e.g., "impair-repair" cycles) to push forget accuracy lower.
-    \item \textbf{Certified Unlearning}: Implementing rigorous $(\epsilon, \delta)$-certified removal guarantees to move beyond empirical evaluation.
+    \item \textbf{Certified Unlearning}: Implementing rigorous $(\epsilon, \delta)$-certified removal guarantees to move beyond empirical evaluation \cite{Guo2020}.
     \item \textbf{Architecture-Specific Methods}: Developing unlearning techniques that explicitly manipulate TabNet's attention masks, rather than just the weights, to prune knowledge more effectively.
 \end{itemize}
 

@@ -2,15 +2,13 @@
 
 In the era of big data, machine learning models are voracious consumers of information. They ingest vast amounts of data to learn patterns, make predictions, and drive decision-making processes across industries. However, this insatiable appetite for data has raised significant privacy concerns. What happens when the data used to train these models contains sensitive personal information that a user wants removed? 
 
-Traditionally, the "right to be forgotten"—enshrined in regulations like the General Data Protection Regulation (GDPR) in the European Union—has been applied to databases. If you ask a company to delete your data, they remove the row from their SQL table. Problem solved, right? Not exactly. 
+Traditionally, the "right to be forgotten"—enshrined in regulations like the General Data Protection Regulation (GDPR) in the European Union—has been applied to databases. If you ask a company to delete your data, they remove the row from their SQL table. However, when a machine learning model is trained on that data, the information doesn't just sit in a database row; it gets baked into the model's parameters (weights and biases). Even after the original data is deleted from the database, the model might still "remember" the information, potentially leaking it through its predictions or being vulnerable to membership inference attacks \cite{Shokri2017}.
 
-When a machine learning model is trained on that data, the information doesn't just sit in a database row; it gets baked into the model's parameters (weights and biases). Even after the original data is deleted from the database, the model might still "remember" the information, potentially leaking it through its predictions or being vulnerable to membership inference attacks. 
-
-This leads us to the concept of \textbf{Machine Unlearning}. The goal is simple yet technically challenging: we want to make the model "forget" specific data points, classes, or subsets of data, such that the resulting model behaves as if it had \emph{never seen that data in the first place}.
+This leads us to the concept of \textbf{Machine Unlearning} \cite{Cao2015}. The goal is simple yet technically challenging: we want to make the model "forget" specific data points, classes, or subsets of data, such that the resulting model behaves as if it had \emph{never seen that data in the first place}.
 
 \section*{The Challenge}
 
-The straightforward solution is to simply delete the requested data and retrain the model from scratch. This is often called the "gold standard" of unlearning because it guarantees the data is gone. However, retraining deep learning models is computationally expensive, energy-intensive, and time-consuming. Imagine retraining a massive language model every time a single user sends a deletion request—it's simply not feasible.
+The straightforward solution is to simply delete the requested data and retrain the model from scratch. This is often called the "gold standard" of unlearning because it guarantees the data is gone. However, retraining deep learning models is computationally expensive, energy-intensive, and time-consuming. Imagine retraining a massive language model every time a single user sends a deletion request—it's simply not feasible \cite{Bourtoule2021}.
 
 Therefore, we need efficient unlearning algorithms that can update the model's weights to "erase" the influence of specific data without the need for a full retrain, while maintaining high accuracy on the remaining data.
 
@@ -18,20 +16,14 @@ Therefore, we need efficient unlearning algorithms that can update the model's w
 
 In this thesis, we explore the application of \textbf{noise-based machine unlearning strategies} specifically for tabular data. While much of the unlearning research focuses on image or text data, tabular data remains the backbone of many industrial and financial applications.
 
-We utilize \textbf{TabNet}, a state-of-the-art deep learning architecture designed for tabular data, which combines the interpretability of decision trees with the learning capacity of neural networks.
+We utilize \textbf{TabNet} \cite{TabNet}, a state-of-the-art deep learning architecture designed for tabular data, which combines the interpretability of decision trees with the learning capacity of neural networks.
 
 Our main objectives are:
 \begin{enumerate}
-    \item To implement a robust tabular classification pipeline using TabNet on a complex, non-linear dataset (the Spiral Dataset).
+    \item To implement a robust tabular classification pipeline using TabNet.
+    \item To evolve our experimental setup from synthetic "proof-of-concept" data (Spirals) to complex, real-world data (Adult Income).
     \item To simulate real-world "forget requests," such as removing an entire class or specific subsets of data.
-    \item To implement and evaluate five distinct noise-based unlearning strategies:
-    \begin{itemize}
-        \item Gaussian Noise Injection
-        \item Laplacian Noise Injection
-        \item Adaptive Noise Injection
-        \item Layer-wise Noise Injection
-        \item Gradient-based Unlearning (Gradient Ascent)
-    \end{itemize}
+    \item To implement and evaluate five distinct noise-based unlearning strategies, including Gaussian, Laplacian, Adaptive, Layer-wise, and Gradient-based unlearning.
     \item To compare these strategies against the baseline (retraining from scratch) to identify the most effective balance between privacy (forgetting) and utility (accuracy).
 \end{enumerate}
 

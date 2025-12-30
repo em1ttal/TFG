@@ -1,23 +1,38 @@
 \chapter{Experimental Setup}
 
-To validate our methodology, we conducted a comprehensive evaluation comprising 18 distinct experiments:
-\[
-(1 \text{ Baseline} + 5 \text{ Strategies}) \times 3 \text{ Forget Requests} = 18 \text{ Experiments}
-\]
+To validate our methodology, we conducted a comprehensive evaluation. Our experiments follow the "dataset evolution" described in the methodology, starting with visual validation on spirals and proceeding to statistical validation on the Adult Income dataset.
 
 \section{The Baseline: Retraining from Scratch}
 For each Forget Request, we trained a fresh TabNet model solely on the retain set $D_r$. This serves as our "Gold Standard." A perfect unlearning strategy would match this baseline's performance exactly:
 \begin{itemize}
     \item \textbf{Retain Accuracy}: Should match the baseline (high).
-    \item \textbf{Forget Accuracy}: Should match the baseline (typically 0\% or random chance).
+    \item \textbf{Forget Accuracy}: Should match the baseline (typically random chance).
     \item \textbf{Test Accuracy}: Should match the baseline (high generalization).
 \end{itemize}
 
+\section{Datasets}
+
+\subsection{Spiral Dataset (Phase 1)}
+We generated a dataset with $N=1200$ samples across 4 classes.
+\begin{itemize}
+    \item \textbf{Setup}: We varied the noise parameters to create "short and fat" vs "long and thin" spirals.
+    \item \textbf{Selection}: We settled on a noise standard deviation of 0.5 to ensure the classes were distinct but had enough boundary overlap to make the classification non-trivial.
+    \item \textbf{Objective}: Visual confirmation of decision boundary shifts.
+\end{itemize}
+
+\subsection{Adult Income Dataset (Phase 2)}
+We utilized the standard Adult Income dataset ($N \approx 48,000$ after cleaning).
+\begin{itemize}
+    \item \textbf{Preprocessing}: We cleaned missing values, encoded categorical variables (Workclass, Education, etc.) using Label Encoding, and normalized numerical features (Age, Hours per Week).
+    \item \textbf{Task}: Binary classification (Income $>50K$ vs $\le 50K$).
+    \item \textbf{Objective}: Statistical confirmation of privacy/utility trade-offs in a high-dimensional space.
+\end{itemize}
+
 \section{Evaluation Metrics}
-We assess performance using three key metrics:
+We assess performance using four key metrics:
 \begin{enumerate}
-    \item \textbf{Retain Accuracy}: The accuracy on the data we intend to keep. We want this to remain high. A drop here indicates "catastrophic forgetting."
-    \item \textbf{Forget Accuracy}: The accuracy on the data we want to remove. We want this to drop significantly. If this remains high, the unlearning failed.
+    \item \textbf{Retain Accuracy}: The accuracy on the data we intend to keep. We want this to remain high.
+    \item \textbf{Forget Accuracy}: The accuracy on the data we want to remove. We want this to drop significantly to random chance levels (25\% for Spirals, 50\% for Adult).
     \item \textbf{Test Accuracy}: The accuracy on unseen data. This ensures the model hasn't just broken its decision boundaries but remains a useful classifier.
     \item \textbf{MIA AUC}: The Area Under the Curve for Membership Inference Attacks. A value close to 0.5 indicates successful privacy preservation (random guessing by the attacker), while 1.0 indicates complete information leakage.
 \end{enumerate}
