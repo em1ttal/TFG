@@ -23,9 +23,23 @@ We generated a dataset with $N=1200$ samples across 4 classes.
 \subsection{Adult Income Dataset (Phase 2)}
 We utilized the standard Adult Income dataset ($N \approx 48,000$ after cleaning).
 \begin{itemize}
-    \item \textbf{Preprocessing}: We cleaned missing values, encoded categorical variables (Workclass, Education, etc.) using Label Encoding, and normalized numerical features (Age, Hours per Week).
+    \item \textbf{Preprocessing}: 
+    \begin{itemize}
+        \item \textbf{Missing Values}: Handled '?' placeholders (both with and without whitespace) by creating an explicit "Unknown" category to preserve information.
+        \item \textbf{Feature Engineering}: We simplified education levels (16 $\rightarrow$ 5 categories) and created binary flags for key indicators like \textit{is\_married}, \textit{has\_capital}, and \textit{is\_us\_native}.
+        \item \textbf{Normalization}: Numerical features were standardized, and categorical features were label-encoded.
+    \end{itemize}
     \item \textbf{Task}: Binary classification (Income $>50K$ vs $\le 50K$).
     \item \textbf{Objective}: Statistical confirmation of privacy/utility trade-offs in a high-dimensional space.
+\end{itemize}
+
+\subsection{Training Hyperparameters}
+We optimized the training process to ensure stable convergence:
+\begin{itemize}
+    \item \textbf{Epochs}: 300 (increased to allow full convergence)
+    \item \textbf{Patience}: 50 epochs (for early stopping)
+    \item \textbf{Learning Rate}: $1e-2$ with a StepLR scheduler (step size 30, gamma 0.95)
+    \item \textbf{Batch Size}: 1024 (with virtual batch size 128)
 \end{itemize}
 
 \section{Evaluation Metrics}

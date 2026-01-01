@@ -9,6 +9,14 @@ For our classification task, we employ \textbf{TabNet} (Attentive Interpretable 
 \subsection{Why TabNet?}
 TabNet uses a sequential attention mechanism to choose which features to reason from at each decision step. This enables interpretability (we can see which features matter) and efficient learning. Unlike standard Multi-Layer Perceptrons (MLPs), TabNet creates a decision-tree-like logic within a neural network.
 
+We configured our TabNet model with the following optimized hyperparameters to ensure sufficient capacity for the Adult Income dataset:
+\begin{itemize}
+    \item \textbf{Decision/Attention Width ($N_d, N_a$)}: 64 (increased from default to capture complex patterns)
+    \item \textbf{Decision Steps ($N_{steps}$)}: 5 (increased depth for better reasoning)
+    \item \textbf{Feature Reusage ($\gamma$)}: 1.5 (encourages feature sharing across steps)
+    \item \textbf{Sparsity ($\lambda_{sparse}$)}: $1e-3$ (reduced regularization to allow using more features)
+\end{itemize}
+
 \subsection{Entmax vs. Sparsemax}
 A key component of TabNet is its masking mechanism. We experimented with different attention mappings. While \textbf{Softmax} provides a dense distribution (all features get some weight), \textbf{Sparsemax} forces many weights to exactly zero, creating sparse selections. We ultimately utilized \textbf{Entmax} (specifically 1.5-entmax), which offers a middle ground: it is sparse like Sparsemax but smoother, allowing for better gradient flow during the unlearning process.
 
@@ -27,7 +35,12 @@ We first generated a synthetic 2D non-linear dataset known as the "Spiral Datase
 Once the unlearning strategies were validated on spirals, we evolved to the \textbf{Adult Income dataset}.
 \begin{itemize}
     \item \textbf{Why?}: This represents "proper" data—real-world census records used to predict income ($>50K$ vs. $\le 50K$).
-    \item \textbf{Challenges}: Unlike the clean 2D spirals, this dataset features mixed data types (categorical and numerical), class imbalance, and higher dimensionality. This tests whether our noise-based unlearning strategies can scale beyond toy problems.
+    \item \textbf{Challenges}: Unlike the clean 2D spirals, this dataset features mixed data types, class imbalance (76\% vs 24\%), and higher dimensionality.
+    \item \textbf{Enhancements}: To address these challenges, we implemented:
+    \begin{itemize}
+        \item \textbf{Feature Engineering}: Created derived features such as \textit{age\_group}, \textit{capital\_change}, \textit{is\_married}, and \textit{age\_education} interactions to improve predictive power.
+        \item \textbf{Class Balancing}: Applied computed class weights ({0: 0.66, 1: 2.09}) during training to prevent the model from biasing towards the majority class.
+    \end{itemize}
 \end{itemize}
 
 \section{Unlearning Framework}
